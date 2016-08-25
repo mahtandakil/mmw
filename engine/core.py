@@ -26,7 +26,7 @@ class Core:
 
 	def start(self):
 
-		print APP_FOLDER
+		print MMW_VERSION
 		print
 		print
 

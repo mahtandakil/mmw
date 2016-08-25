@@ -2,11 +2,15 @@
 # Created for: MMw D
 # Dev line: MMw D
 # Last change: 31/07/2016
-# Last change: 09/08/2016
+# Last change: 23/08/2016
 #****************************************************************************/
 
 
+storage = {}
+
+
 from engine.config import *
+from engine import generator
 
 
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
@@ -91,28 +95,53 @@ def WSHWComposer(url, headers, params, sendvars):
 	if url == "/" or url == "":
 		url = 'index.wiz'
 
-	if url[-4:] == ".wiz":
-		WSHWServeURL(url, headers, params, sendvars, response)
+	if url[-4:] == ".wiz" or url[-5:] == ".html":
+		WSHWServePage(url, headers, params, sendvars, response)
+		
+	else :
+		WSHWServeContent(url, headers, params, sendvars, response)
 		
 	return response
 
 
 #---------------------------------------------------------------------------
 
-def WSHWServeURL(url, headers, params, sendvars, response):
+def WSHWServeContent(url, headers, params, sendvars, response):
 
 	response['headers'].append(['Content-type','text/html'])
+	
+	path = os.path.join (APP_FOLDER, url[1:])
+	
+	fContent = os.path.exists(path)
+
+	if fContent:
+		f = open(path)
+		response['status'] = 200
+		response['content'] = f.read()
+		f.close()
+
+	return response
+
+
+#---------------------------------------------------------------------------
+
+def WSHWServePage(url, headers, params, sendvars, response):
+	
+	response['headers'].append(['Content-type','text/html'])
+	gen = generator.GenML()
 	
 	path = os.path.join (APP_FOLDER, url[1:].replace('.wiz', ''))
 	
 	fHtml = os.path.exists(path + '.html')
 	fPyml = os.path.exists(path + '.py')
-
+	
 	if fHtml:
 		f = open(path + '.html')
 		response['status'] = 200
 		response['content'] = f.read()
 		f.close()
+		
+	response['content'] = gen.generateGenML(response['content'])
 
 	if fPyml:
 		response['status'] = 200
